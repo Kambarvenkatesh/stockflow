@@ -1,0 +1,59 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.7.0 -- /usr/bin/python
+cachedir: .pytest_cache
+rootdir: /home/claude/stockflow
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.15.1
+collecting ... collected 43 items
+
+tests/test_auth_rbac.py::test_register_success_gets_staff_role PASSED    [  2%]
+tests/test_auth_rbac.py::test_register_duplicate_username_conflict PASSED [  4%]
+tests/test_auth_rbac.py::test_register_weak_password_rejected PASSED     [  6%]
+tests/test_auth_rbac.py::test_register_invalid_email PASSED              [  9%]
+tests/test_auth_rbac.py::test_login_success_and_me PASSED                [ 11%]
+tests/test_auth_rbac.py::test_login_wrong_password_401 PASSED            [ 13%]
+tests/test_auth_rbac.py::test_no_token_401 PASSED                        [ 16%]
+tests/test_auth_rbac.py::test_garbage_token_401 PASSED                   [ 18%]
+tests/test_auth_rbac.py::test_staff_cannot_create_category PASSED        [ 20%]
+tests/test_auth_rbac.py::test_manager_can_create_but_not_delete PASSED   [ 23%]
+tests/test_auth_rbac.py::test_admin_can_delete_category PASSED           [ 25%]
+tests/test_auth_rbac.py::test_staff_cannot_access_reports_or_users PASSED [ 27%]
+tests/test_auth_rbac.py::test_admin_can_promote_user_and_cannot_demote_self PASSED [ 30%]
+tests/test_auth_rbac.py::test_deactivated_user_token_rejected PASSED     [ 32%]
+tests/test_catalog_products.py::test_category_duplicate_and_validation PASSED [ 34%]
+tests/test_catalog_products.py::test_supplier_validation PASSED          [ 37%]
+tests/test_catalog_products.py::test_cannot_delete_category_with_products PASSED [ 39%]
+tests/test_catalog_products.py::test_create_product_normalises_sku_and_starts_at_zero_stock PASSED [ 41%]
+tests/test_catalog_products.py::test_product_invalid_inputs PASSED       [ 44%]
+tests/test_catalog_products.py::test_duplicate_sku_conflict PASSED       [ 46%]
+tests/test_catalog_products.py::test_update_and_get_product PASSED       [ 48%]
+tests/test_catalog_products.py::test_search_filter_sort_paginate PASSED  [ 51%]
+tests/test_catalog_products.py::test_low_stock_filter PASSED             [ 53%]
+tests/test_catalog_products.py::test_delete_product_rules PASSED         [ 55%]
+tests/test_stock_orders.py::test_stock_in_out_and_ledger PASSED          [ 58%]
+tests/test_stock_orders.py::test_stock_out_cannot_go_negative PASSED     [ 60%]
+tests/test_stock_orders.py::test_stock_invalid_inputs PASSED             [ 62%]
+tests/test_stock_orders.py::test_staff_cannot_adjust_stock PASSED        [ 65%]
+tests/test_stock_orders.py::test_create_order_deducts_stock_and_computes_total PASSED [ 67%]
+tests/test_stock_orders.py::test_order_is_atomic_rolls_back_on_insufficient_stock PASSED [ 69%]
+tests/test_stock_orders.py::test_order_unknown_product_rolls_back PASSED [ 72%]
+tests/test_stock_orders.py::test_order_validation PASSED                 [ 74%]
+tests/test_stock_orders.py::test_order_unauthenticated PASSED            [ 76%]
+tests/test_stock_orders.py::test_cancel_restores_stock_and_cannot_cancel_twice PASSED [ 79%]
+tests/test_stock_orders.py::test_complete_order_and_staff_cannot_change_status PASSED [ 81%]
+tests/test_stock_orders.py::test_staff_sees_only_own_orders PASSED       [ 83%]
+tests/test_stock_orders.py::test_order_filters_and_sorting PASSED        [ 86%]
+tests/test_upload_reports.py::test_upload_valid_png_and_replace PASSED   [ 88%]
+tests/test_upload_reports.py::test_upload_wrong_type_rejected PASSED     [ 90%]
+tests/test_upload_reports.py::test_upload_disguised_file_rejected PASSED [ 93%]
+tests/test_upload_reports.py::test_upload_too_large_rejected PASSED      [ 95%]
+tests/test_upload_reports.py::test_upload_empty_and_unknown_product_and_staff PASSED [ 97%]
+tests/test_upload_reports.py::test_reports PASSED                        [100%]
+
+=============================== warnings summary ===============================
+../../../usr/local/lib/python3.12/dist-packages/fastapi/testclient.py:1
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 43 passed, 1 warning in 1.69s =========================

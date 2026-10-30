@@ -1,0 +1,129 @@
+
+=== PART 2: AUTH (no login) ===
+PASS  #1   register valid                                                 -> 201 (expected 201) 
+PASS  #2   register duplicate                                             -> 409 (expected 409) 
+PASS  #3   register weak password                                         -> 422 (expected 422) 
+PASS  #4   register bad email                                             -> 422 (expected 422) 
+PASS  #5   login wrong password                                           -> 401 (expected 401) 
+PASS  #6   GET /products without token                                    -> 401 (expected 401) 
+PASS  #6b  garbage token                                                  -> 401 (expected 401) 
+      self-register with role=admin -> 201 role = staff (must be staff)
+
+=== PART 3: STAFF ===
+PASS  #3a  login staff                                                    -> 200 (expected 200) 
+PASS  #7   GET /auth/me                                                   -> 200 (expected 200) 
+PASS  #8   GET /products                                                  -> 200 (expected 200) 
+PASS  #9   staff POST /categories                                         -> 403 (expected 403) 
+PASS  #10  staff GET /reports/summary                                     -> 403 (expected 403) 
+PASS  #11  staff GET /users                                               -> 403 (expected 403) 
+PASS  #12  staff POST /stock/in                                           -> 403 (expected 403) 
+
+=== PART 4: MANAGER ===
+PASS  #4a  login manager                                                  -> 200 (expected 200) 
+PASS  #13  create category                                                -> 201 (expected 201) 
+PASS  #14  duplicate category                                             -> 409 (expected 409) 
+PASS  #15  create supplier                                                -> 201 (expected 201) 
+PASS  #16  supplier bad phone                                             -> 422 (expected 422) 
+PASS  #17  create product                                                 -> 201 (expected 201) 
+      new product id = 11 quantity = 0
+PASS  #18  duplicate SKU                                                  -> 409 (expected 409) 
+PASS  #19  negative price                                                 -> 422 (expected 422) 
+PASS  #20  unknown category                                               -> 404 (expected 404) 
+PASS  #21  update price                                                   -> 200 (expected 200) price=120.0
+PASS  #22  GET /products/9999                                             -> 404 (expected 404) 
+PASS  #23  manager DELETE product                                         -> 403 (expected 403) 
+
+--- search / filter / sort / paginate ---
+PASS  #24  search=pen                                                     -> 200 (expected 200) 
+      -> ['Ball Pen Pack (10)']
+PASS  #25  price 100-1000 sort desc                                       -> 200 (expected 200) 
+      prices: [799.0, 450.0, 399.0, 349.0, 299.0, 120.0, 120.0]
+PASS  #26  pagination page1/page2 size3 -> total=11 pages=4
+PASS  #27  low_stock=true                                                 -> 200 (expected 200) 
+      -> [('ELE-003', 6, 10), ('STA-002', 10, 40), ('FUR-002', 3, 3), ('GRO-002', 0, 20), ('TST-001', 0, 5)]
+PASS  #28  sort_by=abc                                                    -> 422 (expected 422) 
+PASS  #29  size=1000                                                      -> 422 (expected 422) 
+
+--- stock in / out ---
+PASS  #30  stock in 20                                                    -> 201 (expected 201) 
+      balance_after = 20
+PASS  #31  stock out 5                                                    -> 201 (expected 201) 
+      balance_after = 15
+PASS  #32  stock out 999 (insufficient)                                   -> 409 (expected 409) 
+PASS  #33  stock in qty 0                                                 -> 422 (expected 422) 
+PASS  #34  stock in unknown product                                       -> 404 (expected 404) 
+PASS  #35  movements for product                                          -> 200 (expected 200) 
+      rows = 2
+
+--- file upload ---
+PASS  #36  upload .png                                                    -> 200 (expected 200) 
+      image_path = products/e40c7d9354a84b0b91ba0d0ba81e4c08.png
+      static file served: 200
+PASS  #36b upload .jpg (replaces old)                                     -> 200 (expected 200) 
+PASS  #37  upload .pdf                                                    -> 415 (expected 415) 
+PASS  #38  upload 3MB file                                                -> 413 (expected 413) 
+PASS  #39  upload fake .png (text inside)                                 -> 415 (expected 415) 
+PASS  #39b staff upload                                                   -> 403 (expected 403) 
+
+=== PART 5: ORDERS ===
+      Q (product 1 stock) = 70
+PASS  #40  create order (2 x product 1)                                   -> 201 (expected 201) 
+      order id = 6 status = CONFIRMED total = 1598.0
+PASS  #41  stock after order = 68 (expected 68)
+PASS  #42  rollback test (item 2 out of stock)                            -> 409 (expected 409) 
+PASS  #43  stock after failed order = 68 (expected 68, unchanged)
+PASS  #44  duplicate items                                                -> 422 (expected 422) 
+PASS  #45  empty items                                                    -> 422 (expected 422) 
+PASS  #46  unknown product                                                -> 404 (expected 404) 
+PASS  #46b staff cancel order                                             -> 403 (expected 403) 
+PASS  #47  manager cancel order                                           -> 200 (expected 200) 
+PASS  #47b stock restored = 70 (expected 70)
+PASS  #48  cancel again                                                   -> 409 (expected 409) 
+PASS  #49  filter+sort orders                                             -> 200 (expected 200) 
+PASS  #49b bad status filter                                              -> 422 (expected 422) 
+PASS  #49c staff creates own order                                        -> 201 (expected 201) 
+PASS  #49d manager completes it                                           -> 200 (expected 200) 
+PASS  #49e cancel completed order                                         -> 409 (expected 409) 
+
+--- staff role checks on orders ---
+PASS  #R1  staff GET /orders (own only)                                   -> 200 (expected 200) 
+      creators seen: {3} (staff id = 3 )
+PASS  #R2  staff GET /orders/3 (manager's order)                          -> 403 (expected 403) 
+PASS  #R3  staff PATCH order status                                       -> 403 (expected 403) 
+
+=== PART 6: ADMIN ===
+PASS  #6a  login admin                                                    -> 200 (expected 200) 
+PASS  #REP GET /reports/summary                                           -> 200 (expected 200) 
+       {'total_products': 11, 'total_units_in_stock': 500, 'inventory_value': 298585.0, 'low_stock_products': 4, 'total_orders': 5, 'total_revenue': 68451.0}
+PASS  #REP GET /reports/sales-by-day                                      -> 200 (expected 200) 
+       [{'day': '2026-10-20', 'orders': 1, 'revenue': 13970.0}, {'day': '2026-10-22', 'orders': 1, 'revenue': 4400.0}, {'day': '2026-10-23', 'orders': 1, 'revenue': 39996.0}, {'day': '2026-10-25', 'orders': 1, 'revenue': 9786.0}, {'day':
+PASS  #REP GET /reports/top-products?limit=3                              -> 200 (expected 200) 
+       [{'product_id': 4, 'sku': 'STA-001', 'name': 'A4 Notebook (200 pages)', 'units_sold': 30, 'revenue': 3600.0}, {'product_id': 2, 'sku': 'ELE-002', 'name': 'USB-C Cable 1m', 'units_sold': 21, 'revenue': 6279.0}, {'product_id': 9, 's
+PASS  #REP GET /reports/low-stock                                         -> 200 (expected 200) 
+       [{'id': 10, 'sku': 'GRO-002', 'name': 'Green Tea (100 bags)', 'quantity': 0, 'reorder_level': 20, 'shortfall': 20}, {'id': 8, 'sku': 'FUR-002', 'name': 'Standing Desk', 'quantity': 3, 'reorder_level': 3, 'shortfall': 0}, {'id': 3,
+PASS  #REP GET /reports/inventory-by-category                             -> 200 (expected 200) 
+       [{'category': 'Electronics', 'products': 4, 'units': 270, 'value': 126245.0}, {'category': 'Furniture', 'products': 2, 'units': 12, 'value': 119988.0}, {'category': 'Groceries', 'products': 2, 'units': 48, 'value': 19152.0}, {'cat
+PASS  #REP GET /reports/orders-by-status                                  -> 200 (expected 200) 
+       [{'status': 'CONFIRMED', 'orders': 2, 'amount': 49782.0}, {'status': 'COMPLETED', 'orders': 3, 'amount': 18669.0}, {'status': 'CANCELLED', 'orders': 2, 'amount': 3848.0}]
+PASS  #REP top-products limit=0                                           -> 422 (expected 422) 
+PASS  #REP sales-by-day bad date                                          -> 422 (expected 422) 
+PASS  #50  GET /users                                                     -> 200 (expected 200) 
+PASS  #51  promote newuser to manager                                     -> 200 (expected 200) 
+      role = manager
+PASS  #52  admin demotes self                                             -> 403 (expected 403) 
+PASS  #52b admin creates user (valid)                                     -> 201 (expected 201) 
+PASS  #52c admin creates user (weak pw + bad role)                        -> 422 (expected 422) 
+PASS  #53  delete product with history                                    -> 409 (expected 409) 
+PASS  #54  delete category with products                                  -> 409 (expected 409) 
+PASS  #55  delete empty Test Category                                     -> 204 (expected 204) 
+PASS  #55b delete it again                                                -> 404 (expected 404) 
+PASS  #55c delete product with no history                                 -> 204 (expected 204) 
+PASS  #55d new user token works                                           -> 200 (expected 200) 
+PASS  #55e deactivated user's token rejected                              -> 401 (expected 401) 
+PASS  #55f deactivated user cannot login                                  -> 403 (expected 403) 
+
+=== BONUS: CONCURRENCY (real DB row locking) ===
+      8 simultaneous orders for 1 unit -> [201, 409, 409, 409, 409, 409, 409, 409] | final stock = 0
+PASS  exactly one order wins, no overselling
+
+==== 93/93 checks passed ====
